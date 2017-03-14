@@ -1,5 +1,6 @@
 ﻿#include<stdio.h>
 #include<stdlib.h>
+#include<math.h>
 /* ***************** ESTRUCTURAS DE DATOS ****************************** */
 typedef unsigned char byte;    		// Tipo de dato de 1 byte
 typedef unsigned short int word;    	// Tipo de dato de 2 bytes
@@ -16,37 +17,58 @@ typedef struct{
 	float   *imx;   // Puntero al inicio de la imagen
 }gcIMG;
 
+typedef struct{
+	int *x; 
+	int *y;
+	int *r;
+}VOTES;
+
 gcIMG* gcGetImgBmp(char *ruta);
 void gcPutImgBmp(char *ruta, gcIMG *img);
 gcIMG* gcNewImg(int ancho,int alto);
 void gcFreeImg (gcIMG *img);
+void initVotes(VOTES *vt);
 
 int main(void)
 { 
 	//Declarar un Puntero a imagen
 	gcIMG *Img1, *aux;
   	unsigned int i,j;
-  
-  	//Abrir una imagen llamada Uno.bmp
+	VOTES *vt;
+ 	vt = (VOTES *)malloc(sizeof(VOTES));
+	vt -> x = (int *)malloc(sizeof(int));
+	vt -> y = (int *)malloc(sizeof(int));
+	vt -> r = (int *)malloc(sizeof(int));
+  	//Abrir una imagen llamada input.bmp
   	Img1=gcGetImgBmp("input.bmp");
-	//Img1=gcNewImg(256,256);
+
 	aux=gcNewImg(Img1->ancho, Img1->alto);
 	
 	//Extraer los pixeles de la imagen de entrada
 	for(i = 0; i < Img1->ancho; i++)
 		for(j = 0; j < Img1->alto; j++)
 			if(Img1->imx[i*Img1->ancho+j] == 0)
-				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
+			{
+				//aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
+				//printf("px#%d: %lf  %u,%u\n", cont, aux->imx[i*Img1->ancho+j], i, j);i
+				for(int rad = 0; rad < Img1->ancho; rad++)
+					for(float tetha = 0; tetha <= 360; tetha++)
+					{
+						vt->x[i] = (int)(i+rad*cos(tetha));
+						vt->y[i] = (int)(j+rad*sin(tetha));
+						vt->r[i] = rad;
+					}
+			}
 
-
-			
-	gcPutImgBmp("Ejemplo.bmp",aux);
+	
+	
+	gcPutImgBmp("Ejemplo.bmp", Img1);
 	//Libera la Imagen utilizada
 	gcFreeImg(Img1);
 	gcFreeImg(aux);
   	return 0;
 }
- 
+
 gcIMG* gcGetImgBmp(char *ruta)
 { 
 	gcIMG *img;
