@@ -24,16 +24,26 @@ void gcFreeImg (gcIMG *img);
 int main(void)
 { 
 	//Declarar un Puntero a imagen
-	gcIMG *Img1;
+	gcIMG *Img1, *aux;
   	unsigned int i,j;
   
   	//Abrir una imagen llamada Uno.bmp
   	Img1=gcGetImgBmp("input.bmp");
 	//Img1=gcNewImg(256,256);
-  
-  	//gcPutImgBmp("Ejemplo.bmp",Img1);
+	aux=gcNewImg(Img1->ancho, Img1->alto);
+	
+	//Extraer los pixeles de la imagen de entrada
+	for(i = 0; i < Img1->ancho; i++)
+		for(j = 0; j < Img1->alto; j++)
+			if(Img1->imx[i*Img1->ancho+j] == 0)
+				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
+
+
+			
+	gcPutImgBmp("Ejemplo.bmp",aux);
 	//Libera la Imagen utilizada
 	gcFreeImg(Img1);
+	gcFreeImg(aux);
   	return 0;
 }
  
