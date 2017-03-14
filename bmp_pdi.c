@@ -37,7 +37,8 @@ int main(void)
 		for(j = 0; j < Img1->alto; j++)
 			if(Img1->imx[i*Img1->ancho+j] == 0)
 				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
-
+			else
+				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
 
 			
 	gcPutImgBmp("Ejemplo.bmp",aux);
