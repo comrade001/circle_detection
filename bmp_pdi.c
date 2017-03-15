@@ -27,20 +27,21 @@ gcIMG* gcGetImgBmp(char *ruta);
 void gcPutImgBmp(char *ruta, gcIMG *img);
 gcIMG* gcNewImg(int ancho,int alto);
 void gcFreeImg (gcIMG *img);
-void initVotes(VOTES *vt);
 
 int main(void)
 { 
 	//Declarar un Puntero a imagen
 	gcIMG *Img1, *aux;
   	unsigned int i,j;
+	unsigned int index=0;
+	//Abrir una imagen llamada input.bmp
+  	Img1=gcGetImgBmp("input.bmp");
 	VOTES *vt;
  	vt = (VOTES *)malloc(sizeof(VOTES));
-	vt -> x = (int *)malloc(sizeof(int));
-	vt -> y = (int *)malloc(sizeof(int));
-	vt -> r = (int *)malloc(sizeof(int));
-  	//Abrir una imagen llamada input.bmp
-  	Img1=gcGetImgBmp("input.bmp");
+	vt -> x = (int *)malloc(sizeof(int)*Img1->size);
+	vt -> y = (int *)malloc(sizeof(int)*Img1->size);
+	//vt -> r = (int *)malloc(sizeof(int)*Img1->size);
+  	
 
 	aux=gcNewImg(Img1->ancho, Img1->alto);
 	
@@ -49,23 +50,29 @@ int main(void)
 		for(j = 0; j < Img1->alto; j++)
 			if(Img1->imx[i*Img1->ancho+j] == 0)
 			{
-				//aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
-				//printf("px#%d: %lf  %u,%u\n", cont, aux->imx[i*Img1->ancho+j], i, j);i
-				for(int rad = 0; rad < Img1->ancho; rad++)
-					for(float tetha = 0; tetha <= 360; tetha++)
-					{
-						vt->x[i] = (int)(i+rad*cos(tetha));
-						vt->y[i] = (int)(j+rad*sin(tetha));
-						vt->r[i] = rad;
-					}
+				vt->x[index]=i;
+				vt->y[index]=j;
+				index++;
 			}
 
+	for(i = 0; i < index; i++)
+		printf("%d, %d\n", vt->x[i], vt->y[i]);
 	
 	
-	gcPutImgBmp("Ejemplo.bmp", Img1);
+	//gcPutImgBmp("Ejemplo.bmp", Img1);
 	//Libera la Imagen utilizada
 	gcFreeImg(Img1);
 	gcFreeImg(aux);
+	
+	free(vt->x);
+	free(vt->y);
+	free(vt->r);
+	free(vt);
+	vt->x = NULL;
+	vt->y = NULL;
+	vt->r = NULL;
+	vt = NULL;
+
   	return 0;
 }
 
