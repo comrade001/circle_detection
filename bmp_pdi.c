@@ -76,29 +76,28 @@ int main(void)
 	vt = NULL;
 
 	/*Prueba Pso.h*/
-	ENJAMBRE *Ejemplo;
-	unsigned int It = 0, MaximoIteraciones = NUMERO_ITERACIONES;
-	srand(time(NULL));
-	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMEROdePARAMETROS);
-	InicializarEnjambre(Ejemplo, LimiteInf, LimiteSup, 2, 2, LimiteInfVel, LimiteSupVel);
-	
-	EvaluarEnjambre(Ejemplo);
+	ENJAMBRE* Ejemplo;    //CREAR MEMORIA PARA ENJAMBRE
+    	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
+    	Ejemplo=CrearEnjambre(NUMEROdePARTICULAS,NUMERO_PARAMETROS);
+	InicializarEnjambre(Ejemplo,LimiteInf,LimiteSup,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
+    	EvaluarEnjambre(Ejemplo); //EVALUAR EL FITNESS DE CADA PARTICULA
+    	InicializarMejores(Ejemplo); //INICIALIZAR EL FITNESS DE LA MEJOR POSICION DE CADA PARTICULA E IDENTIFICAR EL INDICE DE LA MEJOR GLOBAL
+    	//ShowEnjambre(Ejemplo);  //MOSTRAR EL ENJAMBRE Y LA MEJOR PARTICULA
+    	srand(time(NULL));
 
-	InicializarMejores(Ejemplo);
+    	while ((It<MaximoIteraciones)&&(50-Ejemplo->Enj[Ejemplo->idGbest].PFit)>0.000001)
+    	{
+        	ActualizarVelocidad(Ejemplo);
+        	ActualizarPosicion(Ejemplo);
+        	EvaluarEnjambre(Ejemplo);
+        	ActualizarMejores(Ejemplo);
+        	ShowEnjambre(Ejemplo);
+        	printf("\n\nIteracion %i Best = %u",It,Ejemplo->idGbest);
+        	It++;
+    	}
 
-	while((It < MaximoIteraciones)&&(50-Ejemplo->Enj[Ejemplo->idGbest].PFit>0.000000001))
-	{
-		ActualizarVelocidad(Ejemplo);
-		ActualizarPosicion(Ejemplo);
-		ActualizarMejores(Ejemplo);
-		EvaluarEnjambre(Ejemplo);	
-		It++;
-		printf("\n--------------------------------\n");
-		printf("\nIteracion %u: Best=%u\n", It, Ejemplo -> idGbest);
-		printf("\n--------------------------------\n");
-		ShowEnjambre(Ejemplo);
-	}
-	EliminarEnjambre(Ejemplo);
+    	ShowEnjambre(Ejemplo);
+    	EliminarEnjambre(Ejemplo);
 	printf("\n");
 
   	return 0;
