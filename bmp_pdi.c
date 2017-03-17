@@ -7,6 +7,15 @@ typedef unsigned char byte;    		// Tipo de dato de 1 byte
 typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
+//Sintonizacion del PSO
+const unsigned int NUMEROdePARTICULAS=100;
+const unsigned int NUMERO_PARAMETROS=2;
+const unsigned int NUMERO_ITERACIONES=300;
+const float LimiteInf=0;
+const float LimiteSup=10;
+const float LimiteInfVel=-1.0;
+const float LimiteSupVel=1.0;
+
 typedef struct{
 	byte    id[2];  // Identificador de fila BMP
 	word    offset; // Offset al principio de la imagen
@@ -79,7 +88,7 @@ int main(void)
 	ENJAMBRE* Ejemplo;    //CREAR MEMORIA PARA ENJAMBRE
     	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
     	Ejemplo=CrearEnjambre(NUMEROdePARTICULAS,NUMERO_PARAMETROS);
-	InicializarEnjambre(Ejemplo,LimiteInf,LimiteSup,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
+	InicializarEnjambre(Ejemplo,0,Img1->ancho/2,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
     	EvaluarEnjambre(Ejemplo); //EVALUAR EL FITNESS DE CADA PARTICULA
     	InicializarMejores(Ejemplo); //INICIALIZAR EL FITNESS DE LA MEJOR POSICION DE CADA PARTICULA E IDENTIFICAR EL INDICE DE LA MEJOR GLOBAL
     	//ShowEnjambre(Ejemplo);  //MOSTRAR EL ENJAMBRE Y LA MEJOR PARTICULA
