@@ -1,5 +1,6 @@
 ﻿#include<stdio.h>
 #include<stdlib.h>
+#include"pso.h"
 #include<math.h>
 /* ***************** ESTRUCTURAS DE DATOS ****************************** */
 typedef unsigned char byte;    		// Tipo de dato de 1 byte
@@ -55,8 +56,9 @@ int main(void)
 				index++;
 			}
 
-	for(i = 0; i < index; i++)
-		printf("%d, %d\n", vt->x[i], vt->y[i]);
+	//for(i = 0; i < index; i++)
+	//	printf("%d, %d\n", vt->x[i], vt->y[i]);
+	//printf("%d pixeles detectados\r\n", index);
 	
 	
 	//gcPutImgBmp("Ejemplo.bmp", Img1);
@@ -72,6 +74,32 @@ int main(void)
 	vt->y = NULL;
 	vt->r = NULL;
 	vt = NULL;
+
+	/*Prueba Pso.h*/
+	ENJAMBRE *Ejemplo;
+	unsigned int It = 0, MaximoIteraciones = NUMERO_ITERACIONES;
+	srand(time(NULL));
+	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMEROdePARAMETROS);
+	InicializarEnjambre(Ejemplo, LimiteInf, LimiteSup, 2, 2, LimiteInfVel, LimiteSupVel);
+	
+	EvaluarEnjambre(Ejemplo);
+
+	InicializarMejores(Ejemplo);
+
+	while((It < MaximoIteraciones)&&(50-Ejemplo->Enj[Ejemplo->idGbest].PFit>0.000000001))
+	{
+		ActualizarVelocidad(Ejemplo);
+		ActualizarPosicion(Ejemplo);
+		ActualizarMejores(Ejemplo);
+		EvaluarEnjambre(Ejemplo);	
+		It++;
+		printf("\n--------------------------------\n");
+		printf("\nIteracion %u: Best=%u\n", It, Ejemplo -> idGbest);
+		printf("\n--------------------------------\n");
+		ShowEnjambre(Ejemplo);
+	}
+	EliminarEnjambre(Ejemplo);
+	printf("\n");
 
   	return 0;
 }
