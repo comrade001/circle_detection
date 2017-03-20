@@ -26,14 +26,6 @@ typedef struct{
                        PARTICULA* Enj;
                      }ENJAMBRE;
 
-const unsigned int NUMEROdePARTICULAS=100;
-const unsigned int NUMERO_PARAMETROS=2;
-const unsigned int NUMERO_ITERACIONES=300;
-const float LimiteInf=0;
-const float LimiteSup=10;
-const float LimiteInfVel= -1.0;
-const float LimiteSupVel= 1.0;
-
 ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparametros );
 void InicializarEnjambre(ENJAMBRE* pEnj,const float LInf, const float LSup, const float C1, const float C2, const float Vinf, const float Vsup);
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i);
