@@ -44,7 +44,7 @@ int main(void)
 	gcIMG *Img1, *aux;
   	unsigned int i,j;
 	unsigned int index=0;
-	long x_c, y_c;
+	long x_c, y_c, rad;
 	srand(time(NULL));
 	//Abrir una imagen llamada input.bmp
   	Img1=gcGetImgBmp("input.bmp");
@@ -81,8 +81,9 @@ int main(void)
 
 	x_c = ((x2*x2+y2*y2-(x1*x1+y1*y1))*(2*(y3-y1)) - (2*(y2-y1))*(x3*x3+y3*y3-(x1*x1+y1*y1))) / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
 	y_c = (2*(x2-x1)*(x3*x3+y3*y3-(x1*x1+y1*y1)) - 2*(x3-x1)*(x2*x2+y2*y2-(x1*x1+y1*y1)))  / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
+	rad = sqrt((x1-x_c)*(x1-x_c)+(y1-y_c)*(y1-y_c));
 
-	printf("center = %li, %li\n", x_c, y_c);
+	printf("center = %li, %li\nradio = %li", x_c, y_c, rad);
 
 	//for(i = 0; i < index; i++)
 	//	printf("%d, %d\n", vt->x[i], vt->y[i]);
