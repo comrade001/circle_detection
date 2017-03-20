@@ -8,9 +8,9 @@ typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
-const unsigned int NUMEROdePARTICULAS=100;
+const unsigned int NUMEROdePARTICULAS=1;
 const unsigned int NUMERO_PARAMETROS=2;
-const unsigned int NUMERO_ITERACIONES=300;
+const unsigned int NUMERO_ITERACIONES=0;
 const float LimiteInf=0;
 const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -31,7 +31,7 @@ typedef struct{
 	int *x; 
 	int *y;
 	int *r;
-}VOTES;
+}ACT_PIX;;
 
 gcIMG* gcGetImgBmp(char *ruta);
 void gcPutImgBmp(char *ruta, gcIMG *img);
@@ -44,12 +44,14 @@ int main(void)
 	gcIMG *Img1, *aux;
   	unsigned int i,j;
 	unsigned int index=0;
+	long x_c, y_c;
+	srand(time(NULL));
 	//Abrir una imagen llamada input.bmp
   	Img1=gcGetImgBmp("input.bmp");
-	VOTES *vt;
- 	vt = (VOTES *)malloc(sizeof(VOTES));
-	vt -> x = (int *)malloc(sizeof(int)*Img1->size);
-	vt -> y = (int *)malloc(sizeof(int)*Img1->size);
+	ACT_PIX *px;
+ 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
+	px -> x = (int *)malloc(sizeof(int)*Img1->size);
+	px -> y = (int *)malloc(sizeof(int)*Img1->size);
 	//vt -> r = (int *)malloc(sizeof(int)*Img1->size);
   	
 
@@ -60,39 +62,47 @@ int main(void)
 		for(j = 0; j < Img1->alto; j++)
 			if(Img1->imx[i*Img1->ancho+j] == 0)
 			{
-				vt->x[index]=i;
-				vt->y[index]=j;
+				px->x[index]=i;
+				px->y[index]=j;
 				index++;
 			}
+	
+	int pix1 = (rand()%index)+1;
+	int pix2 = (rand()%index)+1;
+	int pix3 = (rand()%index)+1;
+	
+	int x1 = px->x[pix1];
+	int x2 = px->x[pix2];
+	int x3 = px->x[pix3];
+
+	int y1 = px->y[pix1];
+	int y2 = px->y[pix2];
+	int y3 = px->y[pix3];
+
+	x_c = ((x2*x2+y2*y2-(x1*x1+y1*y1))*(2*(y3-y1)) - (2*(y2-y1))*(x3*x3+y3*y3-(x1*x1+y1*y1))) / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
+	y_c = (2*(x2-x1)*(x3*x3+y3*y3-(x1*x1+y1*y1)) - 2*(x3-x1)*(x2*x2+y2*y2-(x1*x1+y1*y1)))  / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
+
+	printf("center = %li, %li\n", x_c, y_c);
 
 	//for(i = 0; i < index; i++)
 	//	printf("%d, %d\n", vt->x[i], vt->y[i]);
 	//printf("%d pixeles detectados\r\n", index);
-	
+		
 	
 	//gcPutImgBmp("Ejemplo.bmp", Img1);
 	//Libera la Imagen utilizada
 	gcFreeImg(Img1);
 	gcFreeImg(aux);
 	
-	free(vt->x);
-	free(vt->y);
-	free(vt->r);
-	free(vt);
-	vt->x = NULL;
-	vt->y = NULL;
-	vt->r = NULL;
-	vt = NULL;
-
+	
 	/*Prueba Pso.h*/
 	ENJAMBRE* Ejemplo;    //CREAR MEMORIA PARA ENJAMBRE
     	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
     	Ejemplo=CrearEnjambre(NUMEROdePARTICULAS,NUMERO_PARAMETROS);
-	InicializarEnjambre(Ejemplo,0,Img1->ancho/2,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
+	InicializarEnjambre(Ejemplo,LimiteInf,LimiteSup,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
     	EvaluarEnjambre(Ejemplo); //EVALUAR EL FITNESS DE CADA PARTICULA
     	InicializarMejores(Ejemplo); //INICIALIZAR EL FITNESS DE LA MEJOR POSICION DE CADA PARTICULA E IDENTIFICAR EL INDICE DE LA MEJOR GLOBAL
     	//ShowEnjambre(Ejemplo);  //MOSTRAR EL ENJAMBRE Y LA MEJOR PARTICULA
-    	srand(time(NULL));
 
     	while ((It<MaximoIteraciones)&&(50-Ejemplo->Enj[Ejemplo->idGbest].PFit)>0.000001)
     	{
@@ -108,6 +118,15 @@ int main(void)
     	ShowEnjambre(Ejemplo);
     	EliminarEnjambre(Ejemplo);
 	printf("\n");
+	
+	free(px->x);
+	free(px->y);
+	free(px->r);
+	free(px);
+	px->x = NULL;
+	px->y = NULL;
+	px->r = NULL;
+	px = NULL;
 
   	return 0;
 }
