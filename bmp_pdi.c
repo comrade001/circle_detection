@@ -61,11 +61,6 @@ int main(void)
 	for(i = 0; i < Img1->ancho; i++)
 		for(j = 0; j < Img1->alto; j++)
 			if(Img1->imx[i*Img1->ancho+j] == 0)
-<<<<<<< HEAD
-				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
-			else
-				aux->imx[i*Img1->ancho+j]=Img1->imx[i*Img1->ancho+j];
-=======
 			{
 				px->x[index]=i;
 				px->y[index]=j;
@@ -89,7 +84,6 @@ int main(void)
 	rad = sqrt((x1-x_c)*(x1-x_c)+(y1-y_c)*(y1-y_c));
 
 	printf("center = %li, %li\nradio = %li", x_c, y_c, rad);
->>>>>>> votes
 
 	//for(i = 0; i < index; i++)
 	//	printf("%d, %d\n", vt->x[i], vt->y[i]);
