@@ -9,10 +9,10 @@ typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
 const unsigned int NUMEROdePARTICULAS=1;
-const unsigned int NUMERO_PARAMETROS=2;
+const unsigned int NUMERO_PARAMETROS=6;
 const unsigned int NUMERO_ITERACIONES=0;
-const float LimiteInf=0;
-const float LimiteSup=10;
+//const float LimiteInf=0;
+//const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
 const float LimiteSupVel=1.0;
 
@@ -27,11 +27,10 @@ typedef struct{
 	float   *imx;   // Puntero al inicio de la imagen
 }gcIMG;
 
-typedef struct{
-	int *x; 
-	int *y;
-	int *r;
-}ACT_PIX;;
+//typedef struct{
+//	int *x; 
+//	int *y;
+//}ACT_PIX;
 
 gcIMG* gcGetImgBmp(char *ruta);
 void gcPutImgBmp(char *ruta, gcIMG *img);
@@ -40,96 +39,30 @@ void gcFreeImg (gcIMG *img);
 
 int main(void)
 { 
-	//Declarar un Puntero a imagen
-	gcIMG *Img1, *aux;
-  	unsigned int i,j;
-	unsigned int index=0;
-	long x_c, y_c, rad;
-	srand(time(NULL));
-	//Abrir una imagen llamada input.bmp
-  	Img1=gcGetImgBmp("input.bmp");
+	gcIMG *Img1;
+	ENJAMBRE *Ejemplo;
 	ACT_PIX *px;
- 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
+	unsigned int i, j, index = 0;
+	srand(time(NULL));
+	//Abrir la imagen input.bmp
+  	Img1 = gcGetImgBmp("input.bmp");
+	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
 	px -> x = (int *)malloc(sizeof(int)*Img1->size);
 	px -> y = (int *)malloc(sizeof(int)*Img1->size);
-	//vt -> r = (int *)malloc(sizeof(int)*Img1->size);
-  	
-
-	aux=gcNewImg(Img1->ancho, Img1->alto);
 	
-	//Extraer los pixeles de la imagen de entrada
-	for(i = 0; i < Img1->ancho; i++)
-		for(j = 0; j < Img1->alto; j++)
+	for(i=0; i < Img1->ancho; i++)
+		for(j=0; j < Img1->alto; j++)
+			//Si es un pixel activo
 			if(Img1->imx[i*Img1->ancho+j] == 0)
 			{
 				px->x[index]=i;
-				px->y[index]=j;
+				px->x[index+1]=j;
 				index++;
 			}
-	
-	int pix1 = (rand()%index)+1;
-	int pix2 = (rand()%index)+1;
-	int pix3 = (rand()%index)+1;
-	
-	int x1 = px->x[pix1];
-	int x2 = px->x[pix2];
-	int x3 = px->x[pix3];
 
-	int y1 = px->y[pix1];
-	int y2 = px->y[pix2];
-	int y3 = px->y[pix3];
-
-	x_c = ((x2*x2+y2*y2-(x1*x1+y1*y1))*(2*(y3-y1)) - (2*(y2-y1))*(x3*x3+y3*y3-(x1*x1+y1*y1))) / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
-	y_c = (2*(x2-x1)*(x3*x3+y3*y3-(x1*x1+y1*y1)) - 2*(x3-x1)*(x2*x2+y2*y2-(x1*x1+y1*y1)))  / (4*((x2-x1)*(y3-y1)-(x3-x1)*(y2-y1)));
-	rad = sqrt((x1-x_c)*(x1-x_c)+(y1-y_c)*(y1-y_c));
-
-	printf("center = %li, %li\nradio = %li", x_c, y_c, rad);
-
-	//for(i = 0; i < index; i++)
-	//	printf("%d, %d\n", vt->x[i], vt->y[i]);
-	//printf("%d pixeles detectados\r\n", index);
-		
-	
-	//gcPutImgBmp("Ejemplo.bmp", Img1);
-	//Libera la Imagen utilizada
-	gcFreeImg(Img1);
-	gcFreeImg(aux);
-	
-	
-	/*Prueba Pso.h*/
-	ENJAMBRE* Ejemplo;    //CREAR MEMORIA PARA ENJAMBRE
-    	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
-    	Ejemplo=CrearEnjambre(NUMEROdePARTICULAS,NUMERO_PARAMETROS);
-	InicializarEnjambre(Ejemplo,LimiteInf,LimiteSup,2,2,LimiteInfVel,LimiteSupVel); //INICIALIZAR POSICIONES DE LAS PARTICULAS ENTRE LOS LIMITES DEL ESPACIO DE BUSQUEDA DEL PROBLEMA
-    	EvaluarEnjambre(Ejemplo); //EVALUAR EL FITNESS DE CADA PARTICULA
-    	InicializarMejores(Ejemplo); //INICIALIZAR EL FITNESS DE LA MEJOR POSICION DE CADA PARTICULA E IDENTIFICAR EL INDICE DE LA MEJOR GLOBAL
-    	//ShowEnjambre(Ejemplo);  //MOSTRAR EL ENJAMBRE Y LA MEJOR PARTICULA
-
-    	while ((It<MaximoIteraciones)&&(50-Ejemplo->Enj[Ejemplo->idGbest].PFit)>0.000001)
-    	{
-        	ActualizarVelocidad(Ejemplo);
-        	ActualizarPosicion(Ejemplo);
-        	EvaluarEnjambre(Ejemplo);
-        	ActualizarMejores(Ejemplo);
-        	ShowEnjambre(Ejemplo);
-        	printf("\n\nIteracion %i Best = %u",It,Ejemplo->idGbest);
-        	It++;
-    	}
-
-    	ShowEnjambre(Ejemplo);
-    	EliminarEnjambre(Ejemplo);
-	printf("\n");
-	
-	free(px->x);
-	free(px->y);
-	free(px->r);
-	free(px);
-	px->x = NULL;
-	px->y = NULL;
-	px->r = NULL;
-	px = NULL;
-
-  	return 0;
+	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMERO_PARAMETROS);
+	InicializarEnjambre(Ejemplo, px, 0, index, 2, 2, LimiteInfVel, LimiteSupVel);
+	return 0;
 }
 
 gcIMG* gcGetImgBmp(char *ruta)

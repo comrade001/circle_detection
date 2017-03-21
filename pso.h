@@ -26,8 +26,13 @@ typedef struct{
                        PARTICULA* Enj;
                      }ENJAMBRE;
 
+typedef struct{
+	int *x;
+	int *y;
+}ACT_PIX;
+
 ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparametros );
-void InicializarEnjambre(ENJAMBRE* pEnj,const float LInf, const float LSup, const float C1, const float C2, const float Vinf, const float Vsup);
+void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup);
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i);
 void ShowEnjambre(ENJAMBRE* pEnj);
 void EliminarEnjambre(ENJAMBRE* pEnj);
@@ -70,19 +75,22 @@ ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparam
     return(ptr);
 }
 
-void InicializarEnjambre(ENJAMBRE* pEnj,const float LInf, const float LSup, const float C1, const float C2, const float Vinf, const float Vsup)
+void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup)
 {
     unsigned int i,k;
-    float r;
+    int r;
     //PARA TODAS LAS PARTICULAS
     for(i=0;i<pEnj->Nparticulas;i++)
          for(k=0;k<pEnj->Nparametros;k++)
         {
-           r=((double)rand()/RAND_MAX);             //Numero de 0 a 1
-           r=(LSup-LInf)*r+LInf;                              //Numero de LInf a LSup
-           pEnj->Enj[i].Xi[k]=r;                                // El valor de r se le da como primera posicion
+           //r=((float)rand()/RAND_MAX);             //Numero de 0 a 1
+           //r=(int)((LSup-LInf)*r+LInf);                              //Numero de LInf a LSup
+	   r = (rand()%LSup);
+           pEnj->Enj[i].Xi[k]=px->x[r];                                // El valor de r se le da como primera posicion
+	   //pEnj->Enj[i].Xi[k]=px->y[r];
            pEnj->Enj[i].Vi[k]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
-           pEnj->Enj[i].Pi[k]=r;                                // El valor de r es la unica mejor posicion que se conoce
+           pEnj->Enj[i].Pi[k]=px->x[r];                                // El valor de r es la unica mejor posicion que se conoce
+	   //pEnj->Enj[i].Pi[k]=px->y[r];		
         }
         pEnj->C1=C1;
         pEnj->C2=C2;
@@ -135,7 +143,9 @@ void EvaluarEnjambre(ENJAMBRE* pEnj)
     unsigned int k;
     //EVALUAR CADA PARTICULA
     for(k=0;k<pEnj->Nparticulas;k++)
-        pEnj->Enj[k].XFit=50-((pEnj->Enj[k].Xi[0]-5)*(pEnj->Enj[k].Xi[0]-5)+((pEnj->Enj[k].Xi[1]-5)*(pEnj->Enj[k].Xi[1]-5)));
+        //pEnj->Enj[k].XFit=50-((pEnj->Enj[k].Xi[0]-5)*(pEnj->Enj[k].Xi[0]-5)+((pEnj->Enj[k].Xi[1]-5)*(pEnj->Enj[k].Xi[1]-5)));
+	
+	
 }
 
 void InicializarMejores(ENJAMBRE* pEnj)
