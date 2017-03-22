@@ -8,9 +8,9 @@ typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
-const unsigned int NUMEROdePARTICULAS=1;
+const unsigned int NUMEROdePARTICULAS=5;
 const unsigned int NUMERO_PARAMETROS=6;
-const unsigned int NUMERO_ITERACIONES=0;
+const unsigned int NUMERO_ITERACIONES=10;
 //const float LimiteInf=0;
 //const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -73,7 +73,8 @@ int main(void)
 	ENJAMBRE *Ejemplo;
 	ACT_PIX *px;
 	unsigned int i, j, index = 0;
-	srand(time(NULL));
+	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
+	//srand(time(NULL));
 	//Abrir la imagen input.bmp
   	Img1 = gcGetImgBmp("input.bmp");
 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
@@ -93,6 +94,23 @@ int main(void)
 	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMERO_PARAMETROS);
 	InicializarEnjambre(Ejemplo, px, 0, index, 2, 2, LimiteInfVel, LimiteSupVel);
 	EvaluarEnjambre(Ejemplo, Img1);
+	InicializarMejores(Ejemplo);
+	
+	while(It<MaximoIteraciones)
+	{
+		ActualizarVelocidad(Ejemplo);
+		ActualizarPosicion(Ejemplo);
+		ActualizarMejores(Ejemplo);
+		EvaluarEnjambre(Ejemplo, Img1);
+		It++;
+		printf("\n--------------------------------\n");
+		printf("\nIteracion %u: Best=%u\n", It, Ejemplo -> idGbest);
+		printf("\n--------------------------------\n");	
+		ShowEnjambre(Ejemplo);		
+	}
+
+	EliminarEnjambre(Ejemplo);
+
 	free(px->x);
 	free(px);
 	return 0;
@@ -147,7 +165,8 @@ void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int 
            pEnj->Enj[i].Vi[k]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
            pEnj->Enj[i].Pi[k]=px->x[r];                                // El valor de r es la unica mejor posicion que se conoce
 	   //pEnj->Enj[i].Pi[k]=px->y[r];		
-        }
+           pEnj->Enj[i].XFit=0;
+	}
         pEnj->C1=C1;
         pEnj->C2=C2;
         pEnj->Vmin=Vinf;
@@ -159,13 +178,13 @@ void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
     unsigned int k;
     printf("\nX[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f]\t",pEnj->Enj[i].Xi[k]);
+           printf("[%2.3f] ",pEnj->Enj[i].Xi[k]);
     printf("\nV[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f]\t",pEnj->Enj[i].Vi[k]);
+           printf("[%2.3f] ",pEnj->Enj[i].Vi[k]);
     printf("\nP[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f]\t",pEnj->Enj[i].Pi[k]);
+           printf("[%2.3f] ",pEnj->Enj[i].Pi[k]);
     printf("\nXFit[%u]: [%2.3f]",i,pEnj->Enj[i].XFit);
     printf("\nPFit[%u]: [%2.3f]\n",i,pEnj->Enj[i].PFit);
 }
@@ -197,7 +216,8 @@ void EliminarEnjambre(ENJAMBRE* pEnj)
 void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
     unsigned int k;
-    int x_c, y_c, rad;
+    float tetha;
+    int x_c, y_c, rad, x, y;
     //EVALUAR CADA PARTICULA
     for(k=0;k<pEnj->Nparticulas;k++)
     {
@@ -207,7 +227,14 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 	
 	rad = sqrt((pEnj->Enj[k].Xi[0]-x_c)*(pEnj->Enj[k].Xi[0]-x_c)+(pEnj->Enj[k].Xi[1]-y_c)*(pEnj->Enj[k].Xi[1]-y_c));
 	
-	
+	for(tetha=0; tetha<=360; tetha++)
+	{
+		x=(int)(rad*cos(tetha)+x_c);
+		y=(int)(rad*sin(tetha)+y_c);
+		
+		if(img->imx[x*img->ancho+y] == 0)
+			pEnj->Enj[k].XFit++;	
+	}
 
     }
 }
