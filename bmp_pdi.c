@@ -8,9 +8,9 @@ typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
-const unsigned int NUMEROdePARTICULAS=5;
+const unsigned int NUMEROdePARTICULAS=1;
 const unsigned int NUMERO_PARAMETROS=6;
-const unsigned int NUMERO_ITERACIONES=10;
+const unsigned int NUMERO_ITERACIONES=1;
 //const float LimiteInf=0;
 //const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -74,13 +74,12 @@ int main(void)
 	ACT_PIX *px;
 	unsigned int i, j, index = 0;
 	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
-	//srand(time(NULL));
+	srand(time(NULL));
 	//Abrir la imagen input.bmp
   	Img1 = gcGetImgBmp("input.bmp");
 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
 	px -> x = (int *)malloc(sizeof(int)*Img1->size);
-	//px -> y = (int *)malloc(sizeof(int)*Img1->size);
-	
+	//px -> y = (int *)malloc(sizeof(int)*Img1->size); 
 	for(i=0; i < Img1->ancho; i++)
 		for(j=0; j < Img1->alto; j++)
 			//Si es un pixel activo
@@ -151,26 +150,31 @@ ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparam
 
 void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup)
 {
-    unsigned int i,k;
-    int r;
-    //PARA TODAS LAS PARTICULAS
-    for(i=0;i<pEnj->Nparticulas;i++)
-         for(k=0;k<pEnj->Nparametros;k++)
-        {
-           //r=((float)rand()/RAND_MAX);             //Numero de 0 a 1
-           //r=(int)((LSup-LInf)*r+LInf);                              //Numero de LInf a LSup
-	   r = (rand()%LSup);
-           pEnj->Enj[i].Xi[k]=px->x[r];                                // El valor de r se le da como primera posicion
-	   //pEnj->Enj[i].Xi[k]=px->y[r];
-           pEnj->Enj[i].Vi[k]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
-           pEnj->Enj[i].Pi[k]=px->x[r];                                // El valor de r es la unica mejor posicion que se conoce
-	   //pEnj->Enj[i].Pi[k]=px->y[r];		
-           pEnj->Enj[i].XFit=0;
+	unsigned int i,k;
+    	int r;
+    	//PARA TODAS LAS PARTICULAS
+    	for(i=0;i<pEnj->Nparticulas;i++)
+        	for(k=0;k<pEnj->Nparametros;k++)
+        	{
+           		r = (rand()%LSup);
+           		pEnj->Enj[i].Xi[k]=px->x[r];                                // El valor de r se le da como primera posicion
+	   		pEnj->Enj[i].Vi[k]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
+           		pEnj->Enj[i].Pi[k]=px->x[r];                                // El valor de r es la unica mejor posicion que se conoce
+	   		pEnj->Enj[i].XFit=0;
+		}
+        		pEnj->C1=C1;
+        		pEnj->C2=C2;
+        		pEnj->Vmin=Vinf;
+        		pEnj->Vmax=Vsup;
+
+	for(i=0; i<pEnj->Nparticulas; i++)
+	{
+		for(k=0; k<pEnj->Nparametros; k++)
+		{
+			printf("%f\n",pEnj->Enj[i].Xi[k]);
+		}
+		printf("\n--------\n");
 	}
-        pEnj->C1=C1;
-        pEnj->C2=C2;
-        pEnj->Vmin=Vinf;
-        pEnj->Vmax=Vsup;
 }
 
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
@@ -216,16 +220,18 @@ void EliminarEnjambre(ENJAMBRE* pEnj)
 void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
     unsigned int k;
-    float tetha;
-    int x_c, y_c, rad, x, y;
+    int tetha;
+    unsigned int x_c, y_c, rad, x, y;
     //EVALUAR CADA PARTICULA
     for(k=0;k<pEnj->Nparticulas;k++)
     {
+	pEnj->Enj[k].XFit=0;
         //pEnj->Enj[k].XFit=50-((pEnj->Enj[k].Xi[0]-5)*(pEnj->Enj[k].Xi[0]-5)+((pEnj->Enj[k].Xi[1]-5)*(pEnj->Enj[k].Xi[1]-5)));
 	x_c = ((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1])));
     	y_c = (2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1])));
 	
 	rad = sqrt((pEnj->Enj[k].Xi[0]-x_c)*(pEnj->Enj[k].Xi[0]-x_c)+(pEnj->Enj[k].Xi[1]-y_c)*(pEnj->Enj[k].Xi[1]-y_c));
+	//pEnj->Enj[k].XFit = 0;
 	
 	for(tetha=0; tetha<=360; tetha++)
 	{
@@ -243,6 +249,7 @@ void InicializarMejores(ENJAMBRE* pEnj)
 {
   unsigned int k;
   float Best;
+  pEnj->idGbest=0;
   Best=pEnj->Enj[0].XFit;                     //BEST SE INICIALIZA CON EL VALOR FITNESS DE LA POSICION DE LA PRIMERA PARTICULA
   //PARA TODAS LAS PARTICULAS
     for(k=0;k<pEnj->Nparticulas;k++)
@@ -258,7 +265,7 @@ void InicializarMejores(ENJAMBRE* pEnj)
 
 void ActualizarVelocidad(ENJAMBRE* pEnj)
 {
-    unsigned int i,k;
+    unsigned int i,k=0;
     float Y1,Y2,aux;
     //PARA TODAS LAS PARTICULAS
     for(i=0;i<pEnj->Nparticulas;i++)
