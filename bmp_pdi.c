@@ -10,7 +10,7 @@ typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 //Sintonizacion del PSO
 const unsigned int NUMEROdePARTICULAS=1;
 const unsigned int NUMERO_PARAMETROS=6;
-const unsigned int NUMERO_ITERACIONES=1;
+const unsigned int NUMERO_ITERACIONES=2;
 //const float LimiteInf=0;
 //const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -75,6 +75,7 @@ int main(void)
 	unsigned int i, j, index = 0;
 	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
 	srand(time(NULL));
+	//srand(1490216608);
 	//Abrir la imagen input.bmp
   	Img1 = gcGetImgBmp("input.bmp");
 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
@@ -87,7 +88,8 @@ int main(void)
 			{
 				px->x[index]=i;
 				px->x[index+1]=j;
-				index++;
+				//printf("%d, %d\n", px->x[index], px->x[index+1]);
+				index+=2;
 			}
 
 	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMERO_PARAMETROS);
@@ -150,31 +152,38 @@ ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparam
 
 void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup)
 {
-	unsigned int i,k;
-    	int r;
+	unsigned int i, k1, k2;
+    	unsigned int random;
     	//PARA TODAS LAS PARTICULAS
     	for(i=0;i<pEnj->Nparticulas;i++)
-        	for(k=0;k<pEnj->Nparametros;k++)
+	{
+		for(k1=0, k2=1;k1<pEnj->Nparametros;k1+=2, k2+=2)
         	{
-           		r = (rand()%LSup);
-           		pEnj->Enj[i].Xi[k]=px->x[r];                                // El valor de r se le da como primera posicion
-	   		pEnj->Enj[i].Vi[k]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
-           		pEnj->Enj[i].Pi[k]=px->x[r];                                // El valor de r es la unica mejor posicion que se conoce
+           		random = (rand()%LSup+1);				//Valor aleatorio entre (0, LSup)
+			if((random & 1) == 1)
+				random++;
+           		pEnj->Enj[i].Xi[k1]=px->x[random];                                // El valor de r se le da como primera posicion
+			pEnj->Enj[i].Xi[k2]=px->x[random+1];
+	   		pEnj->Enj[i].Vi[k1]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
+			pEnj->Enj[i].Vi[k2]=0;
+           		pEnj->Enj[i].Pi[k1]=px->x[random];                                // El valor de r es la unica mejor posicion que se conoce
+			pEnj->Enj[i].Pi[k2]=px->x[random+1];
 	   		pEnj->Enj[i].XFit=0;
-		}
+		}		
+	}
         		pEnj->C1=C1;
         		pEnj->C2=C2;
         		pEnj->Vmin=Vinf;
         		pEnj->Vmax=Vsup;
 
-	for(i=0; i<pEnj->Nparticulas; i++)
-	{
-		for(k=0; k<pEnj->Nparametros; k++)
-		{
-			printf("%f\n",pEnj->Enj[i].Xi[k]);
-		}
-		printf("\n--------\n");
-	}
+	//for(i=0; i<pEnj->Nparticulas; i++)
+	//{
+	//	for(k=0; k<pEnj->Nparametros; k++)
+	//	{
+	//		printf("%f\n",pEnj->Enj[i].Xi[k]);
+	//	}
+	//	printf("\n--------\n");
+	//}
 }
 
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
@@ -221,23 +230,29 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
     unsigned int k;
     int tetha;
-    unsigned int x_c, y_c, rad, x, y;
+    int x_c, y_c, rad, x, y;
     //EVALUAR CADA PARTICULA
     for(k=0;k<pEnj->Nparticulas;k++)
     {
 	pEnj->Enj[k].XFit=0;
         //pEnj->Enj[k].XFit=50-((pEnj->Enj[k].Xi[0]-5)*(pEnj->Enj[k].Xi[0]-5)+((pEnj->Enj[k].Xi[1]-5)*(pEnj->Enj[k].Xi[1]-5)));
-	x_c = ((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1])));
-    	y_c = (2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1])));
+	x_c = (int)(((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
+    	y_c = (int)((2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
 	
+	if(x_c < 0 || y_c < 0)
+	{
+		printf("Particula perdida\n");
+		break;
+	}
 	rad = sqrt((pEnj->Enj[k].Xi[0]-x_c)*(pEnj->Enj[k].Xi[0]-x_c)+(pEnj->Enj[k].Xi[1]-y_c)*(pEnj->Enj[k].Xi[1]-y_c));
 	//pEnj->Enj[k].XFit = 0;
-	
+
+	printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
 	for(tetha=0; tetha<=360; tetha++)
 	{
 		x=(int)(rad*cos(tetha)+x_c);
 		y=(int)(rad*sin(tetha)+y_c);
-		
+		//printf("x,y=%d,%d\n", x, y);
 		if(img->imx[x*img->ancho+y] == 0)
 			pEnj->Enj[k].XFit++;	
 	}
