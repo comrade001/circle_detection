@@ -8,9 +8,9 @@ typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
-const unsigned int NUMEROdePARTICULAS=1;
+const unsigned int NUMEROdePARTICULAS=30;
 const unsigned int NUMERO_PARAMETROS=6;
-const unsigned int NUMERO_ITERACIONES=2;
+const unsigned int NUMERO_ITERACIONES=100;
 //const float LimiteInf=0;
 //const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -191,15 +191,15 @@ void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
     unsigned int k;
     printf("\nX[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f] ",pEnj->Enj[i].Xi[k]);
+           printf("[%d] ",(int)pEnj->Enj[i].Xi[k]);
     printf("\nV[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f] ",pEnj->Enj[i].Vi[k]);
+           printf("[%d] ",(int)pEnj->Enj[i].Vi[k]);
     printf("\nP[%u]: ",i);
     for(k=0;k<pEnj->Nparametros;k++)
-           printf("[%2.3f] ",pEnj->Enj[i].Pi[k]);
-    printf("\nXFit[%u]: [%2.3f]",i,pEnj->Enj[i].XFit);
-    printf("\nPFit[%u]: [%2.3f]\n",i,pEnj->Enj[i].PFit);
+           printf("[%d] ",(int)pEnj->Enj[i].Pi[k]);
+    printf("\nXFit[%u]: [%d]",i,(int)pEnj->Enj[i].XFit);
+    printf("\nPFit[%u]: [%d]\n",i,(int)pEnj->Enj[i].PFit);
 }
 
 void ShowEnjambre(ENJAMBRE* pEnj)
@@ -228,7 +228,7 @@ void EliminarEnjambre(ENJAMBRE* pEnj)
 
 void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
-    unsigned int k;
+    unsigned int k, lostv=0;
     int tetha;
     int x_c, y_c, rad, x, y;
     //EVALUAR CADA PARTICULA
@@ -239,25 +239,30 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 	x_c = (int)(((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
     	y_c = (int)((2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
 	
-	if(x_c < 0 || y_c < 0)
-	{
-		printf("Particula perdida\n");
-		break;
-	}
+	//if(x_c < 0 || y_c < 0)
+	//{
+	//	printf("Particula perdida\n");
+	//	break;
+	//}
 	rad = sqrt((pEnj->Enj[k].Xi[0]-x_c)*(pEnj->Enj[k].Xi[0]-x_c)+(pEnj->Enj[k].Xi[1]-y_c)*(pEnj->Enj[k].Xi[1]-y_c));
 	//pEnj->Enj[k].XFit = 0;
 
-	printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
+	//printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
 	for(tetha=0; tetha<=360; tetha++)
 	{
 		x=(int)(rad*cos(tetha)+x_c);
 		y=(int)(rad*sin(tetha)+y_c);
 		//printf("x,y=%d,%d\n", x, y);
-		if(img->imx[x*img->ancho+y] == 0)
-			pEnj->Enj[k].XFit++;	
+		if(x < 256 && y < 256 && x > 0 && y > 0)
+		{
+			lostv++;
+			if(img->imx[x*img->ancho+y] == 0)
+				pEnj->Enj[k].XFit++;	
+		}
 	}
 
     }
+    	printf("%d\n", lostv);
 }
 
 void InicializarMejores(ENJAMBRE* pEnj)
