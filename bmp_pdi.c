@@ -8,9 +8,9 @@ typedef unsigned short int word;    	// Tipo de dato de 2 bytes
 typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
 //Sintonizacion del PSO
-const unsigned int NUMEROdePARTICULAS=30;
+const unsigned int NUMEROdePARTICULAS=3;
 const unsigned int NUMERO_PARAMETROS=6;
-const unsigned int NUMERO_ITERACIONES=100;
+const unsigned int NUMERO_ITERACIONES=1000;
 //const float LimiteInf=0;
 //const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
@@ -29,11 +29,11 @@ typedef struct{
 
 //DEFINICION DE LA ESTRUCTURA PARTICULA
 typedef struct{
-                       float* Xi;   //POSICION
-                       float* Vi;   //VELOCIDAD
-                       float* Pi;   //MEJOR POSICION
-                       float XFit; //VALOR DE FITNESS DE LA POSICION
-                       float PFit; //VALOR DE FITNESS DE LA MEJOR POSICION
+                       float* Xi;    	//POSICION
+                       float* Vi;    	//VELOCIDAD
+                       float* Pi;    	//MEJOR POSICION
+                       float XFit;  	//VALOR DE FITNESS DE LA POSICION
+                       float PFit;  	//VALOR DE FITNESS DE LA MEJOR POSICION	
                     }PARTICULA;
 //DEFINICION DE LA ESTRUCTURA PARA EL ENJAMBRE
 typedef struct{
@@ -72,15 +72,13 @@ int main(void)
 	gcIMG *Img1;
 	ENJAMBRE *Ejemplo;
 	ACT_PIX *px;
-	unsigned int i, j, index = 0;
+	unsigned int i, j, index = 0, pix_detect = 0;
 	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
 	srand(time(NULL));
-	//srand(1490216608);
 	//Abrir la imagen input.bmp
   	Img1 = gcGetImgBmp("input.bmp");
 	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
 	px -> x = (int *)malloc(sizeof(int)*Img1->size);
-	//px -> y = (int *)malloc(sizeof(int)*Img1->size); 
 	for(i=0; i < Img1->ancho; i++)
 		for(j=0; j < Img1->alto; j++)
 			//Si es un pixel activo
@@ -90,6 +88,7 @@ int main(void)
 				px->x[index+1]=j;
 				//printf("%d, %d\n", px->x[index], px->x[index+1]);
 				index+=2;
+				pix_detect++;
 			}
 
 	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMERO_PARAMETROS);
@@ -110,6 +109,8 @@ int main(void)
 		ShowEnjambre(Ejemplo);		
 	}
 
+	if(Ejemplo->Enj[Ejemplo->idGbest].PFit > 359)
+		printf("Hay un circulo\n");
 	EliminarEnjambre(Ejemplo);
 
 	free(px->x);
@@ -228,7 +229,7 @@ void EliminarEnjambre(ENJAMBRE* pEnj)
 
 void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
-    unsigned int k, lostv=0;
+    unsigned int k;
     int tetha;
     int x_c, y_c, rad, x, y;
     //EVALUAR CADA PARTICULA
@@ -239,30 +240,28 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 	x_c = (int)(((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
     	y_c = (int)((2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
 	
-	//if(x_c < 0 || y_c < 0)
-	//{
-	//	printf("Particula perdida\n");
-	//	break;
-	//}
+	if(x_c < 0 || y_c < 0)
+	{
+		printf("Particula perdida\n");
+		break;
+	}
 	rad = sqrt((pEnj->Enj[k].Xi[0]-x_c)*(pEnj->Enj[k].Xi[0]-x_c)+(pEnj->Enj[k].Xi[1]-y_c)*(pEnj->Enj[k].Xi[1]-y_c));
 	//pEnj->Enj[k].XFit = 0;
 
-	//printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
-	for(tetha=0; tetha<=360; tetha++)
+	printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
+	for(tetha=0; tetha<360; tetha++)
 	{
-		x=(int)(rad*cos(tetha)+x_c);
-		y=(int)(rad*sin(tetha)+y_c);
+		x=(int)(rad*cos(tetha*M_PI/180.0)+x_c);
+		y=(int)(rad*sin(tetha*M_PI/180.0)+y_c);
 		//printf("x,y=%d,%d\n", x, y);
 		if(x < 256 && y < 256 && x > 0 && y > 0)
 		{
-			lostv++;
 			if(img->imx[x*img->ancho+y] == 0)
 				pEnj->Enj[k].XFit++;	
 		}
 	}
 
     }
-    	printf("%d\n", lostv);
 }
 
 void InicializarMejores(ENJAMBRE* pEnj)
