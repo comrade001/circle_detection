@@ -36,6 +36,7 @@ typedef struct{
                        float PFit;  	//VALOR DE FITNESS DE LA MEJOR POSICION	
 		       int *x_c;
 		       int *y_c;
+		       int *rad;
                     }PARTICULA;
 //DEFINICION DE LA ESTRUCTURA PARA EL ENJAMBRE
 typedef struct{
@@ -151,6 +152,7 @@ ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparam
         ptr->Enj[k].Pi=(float*)malloc(sizeof(float)*Nparametros);
 	ptr->Enj[k].x_c=(int*)malloc(sizeof(int));
 	ptr->Enj[k].y_c=(int*)malloc(sizeof(int));
+	ptr->Enj[k].rad=(int*)malloc(sizeof(int));
     }
     return(ptr);
 }
@@ -205,6 +207,8 @@ void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
            printf("[%d] ",(int)pEnj->Enj[i].Pi[k]);
     printf("\nXFit[%u]: [%d]",i,(int)pEnj->Enj[i].XFit);
     printf("\nPFit[%u]: [%d]\n",i,(int)pEnj->Enj[i].PFit);
+    printf("x_c: [%d] y_c: [%d]\n", *pEnj->Enj[i].x_c, *pEnj->Enj[i].y_c);
+    printf("radius: [%d]\n", *pEnj->Enj[i].rad);
 }
 
 void ShowEnjambre(ENJAMBRE* pEnj)
@@ -226,6 +230,7 @@ void EliminarEnjambre(ENJAMBRE* pEnj)
         free(pEnj->Enj[k].Pi);
         free(pEnj->Enj[k].x_c);
         free(pEnj->Enj[k].y_c);
+        free(pEnj->Enj[k].rad);
     }
     //LIBERAR MEMORIA DE LAS PARTTICULAS
     free(pEnj->Enj);
@@ -237,7 +242,7 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
     unsigned int k;
     int tetha;
-    int rad, x, y;
+    int x, y;
     //EVALUAR CADA PARTICULA
     for(k=0;k<pEnj->Nparticulas;k++)
     {
@@ -248,19 +253,19 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 	
 	if(*pEnj->Enj[k].x_c < 0 || *pEnj->Enj[k].y_c < 0)
 	{
-		printf("\n*************************\n");
+		printf("\n*************************");
 		printf("\nParticula perdida\n");
-		printf("\n*************************\n");
+		printf("*************************\n");
 		break;
 	}
-	rad = sqrt((pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)*(pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)+(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c)*(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c));
+	*pEnj->Enj[k].rad = sqrt((pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)*(pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)+(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c)*(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c));
 	//pEnj->Enj[k].XFit = 0;
 
 	//printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
 	for(tetha=0; tetha<360; tetha++)
 	{
-		x=(int)(rad*cos(tetha*M_PI/180.0)+*pEnj->Enj[k].x_c);
-		y=(int)(rad*sin(tetha*M_PI/180.0)+*pEnj->Enj[k].y_c);
+		x=(int)(*pEnj->Enj[k].rad*cos(tetha*M_PI/180.0)+*pEnj->Enj[k].x_c);
+		y=(int)(*pEnj->Enj[k].rad*sin(tetha*M_PI/180.0)+*pEnj->Enj[k].y_c);
 		//printf("x,y=%d,%d\n", x, y);
 		if(x < 256 && y < 256 && x > 0 && y > 0)
 		{
