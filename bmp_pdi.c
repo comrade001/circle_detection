@@ -2,17 +2,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-/* ***************** ESTRUCTURAS DE DATOS ****************************** */
-typedef unsigned char byte;    		// Tipo de dato de 1 byte
-typedef unsigned short int word;    	// Tipo de dato de 2 bytes
-typedef unsigned long  int dword;   	// Tipo de dato de 4 bytes
 
-//Sintonizacion del PSO
+typedef unsigned char byte;		// Tipo de dato de 1 byte
+typedef unsigned short int word;	// Tipo de dato de 2 bytes
+typedef unsigned long  int dword;	// Tipo de dato de 4 bytes
+
+/*Sintonizacion del PSO*/
 const unsigned int NUMEROdePARTICULAS=90;
 const unsigned int NUMERO_PARAMETROS=6;
 const unsigned int NUMERO_ITERACIONES=60;
-//const float LimiteInf=0;
-//const float LimiteSup=10;
 const float LimiteInfVel=-1.0;
 const float LimiteSupVel=1.0;
 
@@ -27,40 +25,47 @@ typedef struct{
 	float   *imx;   // Puntero al inicio de la imagen
 }gcIMG;
 
-//DEFINICION DE LA ESTRUCTURA PARTICULA
+/*Definicion de la estructura particula*/
 typedef struct{
-                       float* Xi;    	//POSICION
-                       float* Vi;    	//VELOCIDAD
-                       float* Pi;    	//MEJOR POSICION
-                       float XFit;  	//VALOR DE FITNESS DE LA POSICION
-                       float PFit;  	//VALOR DE FITNESS DE LA MEJOR POSICION	
-		       int *x_c;
-		       int *y_c;
-		       int *rad;
-                    }PARTICULA;
-//DEFINICION DE LA ESTRUCTURA PARA EL ENJAMBRE
-typedef struct{
-                       unsigned int Nparticulas;
-                       unsigned int Nparametros;
-                       unsigned int idGbest;             // id global best
-                       float Vmin;                            //VELOCIDAD MINIMA
-                       float Vmax;                           //VELOCIDAD MAXIMA
-                       float C1;                              //COEFICIENTE DE ACELERACION
-                       float C2;                              //COEFICIENTE DE ACELERACION
-                       PARTICULA* Enj;
-                     }ENJAMBRE;
+	float* Xi;    	//Posicion
+        float* Vi;    	//Velocidad
+        float* Pi;    	//Mejor posicion
+        float XFit;  	//Valor fitness de la posicion
+        float PFit;  	//Valor fitness de la mejor posicion
+	int *x_c;	//Componente en X del circulo calculado	
+	int *y_c;	//Componente en Y del circulo calculado
+	int *rad;	//Radio del circulo calculado
+}PARTICULA;
 
+/*Definicion de la estructura enjambre*/
 typedef struct{
-	int *x;		//POSICION PIXEL ACTIVO
+	unsigned int Nparticulas;
+        unsigned int Nparametros;
+        unsigned int idGbest;	//id global best
+        float Vmin;		//Velocidad minima
+        float Vmax;		//Velocidad maxima
+        float C1;		//Coeficiente de aceleracion 1
+        float C2;		//Coeficiente de aceleracion 2
+        PARTICULA* Enj;		//Puntero Enj a PARTICULA	
+}ENJAMBRE;
+
+/*Definicion de la estructura para pixeles activos*/
+typedef struct{
+	int *x;		//Posicion pixel activo
 }ACT_PIX;
 
+/*Prototipo de funciones (Imagen)*/
 gcIMG* gcGetImgBmp(char *ruta);
 void gcPutImgBmp(char *ruta, gcIMG *img);
 gcIMG* gcNewImg(int ancho,int alto);
 void gcFreeImg (gcIMG *img);
 
-ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparametros );
-void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup);
+/*Prototipo de funciones (PSO)*/
+ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,
+		const unsigned int Nparametros);
+void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, 
+		const int LSup, const float C1, const float C2, 
+		const float Vinf, const float Vsup);
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i);
 void ShowEnjambre(ENJAMBRE* pEnj);
 void EliminarEnjambre(ENJAMBRE* pEnj);
@@ -72,212 +77,247 @@ void ActualizarMejores(ENJAMBRE* pEnj);
 
 int main(void)
 { 
-	gcIMG *Img1;
-	ENJAMBRE *Ejemplo;
-	ACT_PIX *px;
-	unsigned int i, j, index = 0, pix_detect = 0;
+	gcIMG *Img1;		//Puntero Img1 a struct gcIMG
+	ENJAMBRE *Ejemplo;	//Puntero Ejemplo a struct ENJAMBRE
+	ACT_PIX *px;		//Puntero px a struct ACT_PIX
+	unsigned int i, j, index = 0;
 	unsigned int It=0,MaximoIteraciones=NUMERO_ITERACIONES;
-	srand(time(NULL));
-	//Abrir la imagen input.bmp
+	srand(time(NULL));	//Semilla a partir de reloj del sistema
+	
+	/*Abrir la imagen "input.bmp"*/
   	Img1 = gcGetImgBmp("input.bmp");
-	px = (ACT_PIX *)malloc(sizeof(ACT_PIX));
+
+	/*Crear espacio en memoria para la struct px*/
+	px = (ACT_PIX *)malloc(sizeof(ACT_PIX)); 	
 	px -> x = (int *)malloc(sizeof(int)*Img1->size);
-	for(i=0; i < Img1->ancho; i++)
-		for(j=0; j < Img1->alto; j++)
-			//Si es un pixel activo
-			if(Img1->imx[i*Img1->ancho+j] == 0)
+	
+	/*Deteccion de pixeles activos*/
+	for(i=0; i < Img1->ancho; i++)		//Recorrido por filas
+		for(j=0; j < Img1->alto; j++)	//Recorrido por columnas
+			if(Img1->imx[i*Img1->ancho+j] == 0) //Si es pixel activo
 			{
 				px->x[index]=i;
 				px->x[index+1]=j;
-				//printf("%d, %d\n", px->x[index], px->x[index+1]);
 				index+=2;
-				pix_detect++;
 			}
 
+	/*Creacion del enjambre*/
 	Ejemplo = CrearEnjambre(NUMEROdePARTICULAS, NUMERO_PARAMETROS);
-	InicializarEnjambre(Ejemplo, px, 0, index, 2, 2, LimiteInfVel, LimiteSupVel);
+	/*Inicializacion del enjambre*/
+	InicializarEnjambre(Ejemplo, px, 0, index, 2, 2, 
+			LimiteInfVel, LimiteSupVel);
+	/*Evaluacion del enjambre*/
 	EvaluarEnjambre(Ejemplo, Img1);
+	/*Inicializacion de los mejores*/
 	InicializarMejores(Ejemplo);
 	
 	while(It<MaximoIteraciones)
 	{
+		/*Acualizacion de la velocidad de la particula*/
 		ActualizarVelocidad(Ejemplo);
+		/*Actualizacion de la posicion de la particula*/
 		ActualizarPosicion(Ejemplo);
+		/*Actualización de la mejor particula*/
 		ActualizarMejores(Ejemplo);
+		/*Evaluacion del enjambre*/
 		EvaluarEnjambre(Ejemplo, Img1);
 		It++;
 		printf("\n--------------------------------\n");
 		printf("\nIteracion %u: Best=%u\n", It, Ejemplo -> idGbest);
 		printf("\n--------------------------------\n");	
+		/*Muestra el enjambre en pantalla*/
 		ShowEnjambre(Ejemplo);		
 	}
 
-	//if(Ejemplo->Enj[Ejemplo->idGbest].PFit > 359)
-	//	printf("Hay un circulo\n");
+	/*Liberacion de las particulas*/
 	EliminarEnjambre(Ejemplo);
 
+	/*Devolver espacio al HEAP*/
 	free(px->x);
 	free(px);
 	return 0;
 }
 
-ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparametros )
+/*Funcion que crea espacio en memoria para todo el enjambre*/
+ENJAMBRE* CrearEnjambre(const unsigned int Nparticulas,const unsigned int Nparametros)
 {
-    unsigned int k;
-    ENJAMBRE* ptr;
-    //ASIGNAR MEMORIA PARA LA ESTRUCTURA ENJAMBRE
-    ptr=(ENJAMBRE*)malloc(sizeof(ENJAMBRE));
-    if(ptr==NULL)
-    {
-        printf("ERROR AL ASIGNAR MEMORIA A LA ESTRUCTURA ENJAMBRE");
-        exit(0);
-    }
-    //INICIALIZAR LA ESTRUCTURA
-    //ASIGNA NUMERO DE PARTICULAS
-    ptr->Nparticulas=Nparticulas;
-    //ASIGNA NUMERO DE PARAMETROS
-    ptr->Nparametros=Nparametros;
-    //ASIGNA MEMORIA PARA LAS PARTICULAS
-    ptr->Enj=(PARTICULA*)malloc(sizeof(PARTICULA)*Nparticulas);
-    if(ptr->Enj==NULL)
-    {
-        printf("ERROR AL ASIGNAR MEMORIA A LAS PARTICULAS");
-        exit(0);
-    }
-    //ASIGNAR MEMORIA A CADA PARTICULA
-    for(k=0;k<Nparticulas;k++)
-    {
-        ptr->Enj[k].Xi=(float*)malloc(sizeof(float)*Nparametros);
-        ptr->Enj[k].Vi=(float*)malloc(sizeof(float)*Nparametros);
-        ptr->Enj[k].Pi=(float*)malloc(sizeof(float)*Nparametros);
-	ptr->Enj[k].x_c=(int*)malloc(sizeof(int));
-	ptr->Enj[k].y_c=(int*)malloc(sizeof(int));
-	ptr->Enj[k].rad=(int*)malloc(sizeof(int));
-    }
-    return(ptr);
+	unsigned int k;
+	ENJAMBRE* ptr;
+    	/*Asignar memoria para la estructura enjambre*/
+    	ptr=(ENJAMBRE*)malloc(sizeof(ENJAMBRE));
+    	if(ptr==NULL)
+    	{
+        	printf("ERROR AL ASIGNAR MEMORIA A LA ESTRUCTURA ENJAMBRE");
+        	exit(0);
+    	}
+    	/*Inicializar la estructura
+     	* Asigna numero de particulas*/
+    	ptr->Nparticulas=Nparticulas;
+    	/*Asigna numero de parametros*/
+    	ptr->Nparametros=Nparametros;
+    	/*Asigna memoria para las particulas*/
+	ptr->Enj=(PARTICULA*)malloc(sizeof(PARTICULA)*Nparticulas);
+    	if(ptr->Enj==NULL)
+    	{
+    	    printf("ERROR AL ASIGNAR MEMORIA A LAS PARTICULAS");
+    	    exit(0);
+    	}
+    	/*Asignacion de memoria para los miembros de la particula*/
+    	for(k=0;k<Nparticulas;k++)
+    	{
+        	ptr->Enj[k].Xi=(float*)malloc(sizeof(float)*Nparametros);
+        	ptr->Enj[k].Vi=(float*)malloc(sizeof(float)*Nparametros);
+        	ptr->Enj[k].Pi=(float*)malloc(sizeof(float)*Nparametros);
+		ptr->Enj[k].x_c=(int*)malloc(sizeof(int));
+		ptr->Enj[k].y_c=(int*)malloc(sizeof(int));
+		ptr->Enj[k].rad=(int*)malloc(sizeof(int));
+    	}
+    	return(ptr);
 }
 
-void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, const int LSup, const float C1, const float C2, const float Vinf, const float Vsup)
+/*Funcion para la inicializacion del enjambre*/
+void InicializarEnjambre(ENJAMBRE* pEnj, ACT_PIX *px, const int LInf, 
+		const int LSup, const float C1, const float C2, 
+		const float Vinf, const float Vsup)
 {
 	unsigned int i, k1, k2;
     	unsigned int random;
-    	//PARA TODAS LAS PARTICULAS
+    	/*Para todas las particulas*/
     	for(i=0;i<pEnj->Nparticulas;i++)
 	{
+		/*Para todo los parametros*/
 		for(k1=0, k2=1;k1<pEnj->Nparametros;k1+=2, k2+=2)
         	{
-           		random = (rand()%LSup+1);				//Valor aleatorio entre (0, LSup)
+			/*Valor aleatorio entre [0, LSup]*/
+           		random = (rand()%LSup+1);	
+			/*Si random es impar significa que estamos
+			 * en un valor de ordenada*/
 			if((random & 1) == 1)
 				random++;
-           		pEnj->Enj[i].Xi[k1]=px->x[random];                                // El valor de r se le da como primera posicion
+			/*El valor de random se le da como primera posicion*/
+           		pEnj->Enj[i].Xi[k1]=px->x[random];                                
 			pEnj->Enj[i].Xi[k2]=px->x[random+1];
-	   		pEnj->Enj[i].Vi[k1]=0;                               // El valor de 0 se agrega porque suponemos que no tenemos velocidad
+				
+			/*EL valor de 0 se agrega porque suponemos que partimos
+			 * del reposo*/
+	   		pEnj->Enj[i].Vi[k1]=0;    
 			pEnj->Enj[i].Vi[k2]=0;
-           		pEnj->Enj[i].Pi[k1]=px->x[random];                                // El valor de r es la unica mejor posicion que se conoce
+           		
+			/*El valor de random es la unica mejor posicion
+			 * que se conoce*/
+			pEnj->Enj[i].Pi[k1]=px->x[random];
 			pEnj->Enj[i].Pi[k2]=px->x[random+1];
-	   		pEnj->Enj[i].XFit=0;
+	   		/*El valor fitness de la posicion se inicializa en 0*/
+			pEnj->Enj[i].XFit=0;
 		}		
 	}
+			/*Inicializacion de las constantes C1 y C2
+			 * y de los valores de frontera de Vmin y Vmax*/
         		pEnj->C1=C1;
         		pEnj->C2=C2;
         		pEnj->Vmin=Vinf;
         		pEnj->Vmax=Vsup;
 }
 
+/*Funcion para vizualizacion en pantalla de la particula*/
 void ShowParticula(ENJAMBRE* pEnj, const unsigned int i)
 {
-    unsigned int k;
-    printf("\nX[%u]: ",i);
-    for(k=0;k<pEnj->Nparametros;k++)
-            printf("[%d] ",(int)pEnj->Enj[i].Xi[k]);
-    printf("\nV[%u]: ",i);
-    for(k=0;k<pEnj->Nparametros;k++)
-            printf("[%d] ",(int)pEnj->Enj[i].Vi[k]);
-    printf("\nP[%u]: ",i);
-    for(k=0;k<pEnj->Nparametros;k++)
-            printf("[%d] ",(int)pEnj->Enj[i].Pi[k]);
-    printf("\nXFit[%u]: [%d]",i,(int)pEnj->Enj[i].XFit);
-    if(pEnj->Enj[i].PFit > 180)
-    	    printf("\nPFit[%u]: [%d]   <--------------(circulo)\n",i,(int)pEnj->Enj[i].PFit);
-    else
-	    printf("\nPFit[%u]: [%d]\n",i,(int)pEnj->Enj[i].PFit);
+	unsigned int k;
+    	printf("\nX[%u]: ",i);
+    	for(k=0;k<pEnj->Nparametros;k++)
+    		printf("[%d] ",(int)pEnj->Enj[i].Xi[k]);
+    	printf("\nV[%u]: ",i);
+    	for(k=0;k<pEnj->Nparametros;k++)
+		printf("[%d] ",(int)pEnj->Enj[i].Vi[k]);
+    	printf("\nP[%u]: ",i);
+    	for(k=0;k<pEnj->Nparametros;k++)
+    		printf("[%d] ",(int)pEnj->Enj[i].Pi[k]);
+    	printf("\nXFit[%u]: [%d]",i,(int)pEnj->Enj[i].XFit);
+    	
+	/*Si los votos sobrepasan el valor podemos decir
+    	 * que se trata de un circulo en cuestion*/
+    	if(pEnj->Enj[i].PFit > 180)
+    		    printf("\nPFit[%u]: [%d]   <--------------(circulo)\n",i,(int)pEnj->Enj[i].PFit);
+    	else
+    	        printf("\nPFit[%u]: [%d]\n",i,(int)pEnj->Enj[i].PFit);
 
-    if(*pEnj->Enj[i].x_c > 0 && *pEnj->Enj[i].y_c > 0)
-    {
-	    printf("x_c: [%d] y_c: [%d]\n", *pEnj->Enj[i].x_c, *pEnj->Enj[i].y_c);
-	    printf("radius: [%d]\n", *pEnj->Enj[i].rad);
-    }
-    else if(*pEnj->Enj[i].x_c < 0 && *pEnj->Enj[i].y_c > 0)
-    {
-	    printf("x_c: [%s] y_c: [%d]\n", "lost", *pEnj->Enj[i].y_c); 
-	    printf("radius: [%s]\n", "lost");
-    }
-    else if(*pEnj->Enj[i].x_c > 0 && *pEnj->Enj[i].y_c < 0)
-    {
-	    printf("x_c: [%d] y_c: [%s]\n", *pEnj->Enj[i].x_c, "lost");	
-	    printf("radius: [%s]\n", "lost");
-    }	
+    	/*Si el calculo del centro del circulo sale de nuestro espacio
+	 * cosideramos que el calculo de dicha particula esta perdido
+	 * debido a colinealidades en los parametros de la particula*/    
+    	if(*pEnj->Enj[i].x_c > 0 && *pEnj->Enj[i].y_c > 0)
+    	{
+    	        printf("x_c: [%d] y_c: [%d]\n", *pEnj->Enj[i].x_c, *pEnj->Enj[i].y_c);
+    	        printf("radius: [%d]\n", *pEnj->Enj[i].rad);
+    	}
+    	else if(*pEnj->Enj[i].x_c < 0 && *pEnj->Enj[i].y_c > 0)
+    	{
+    	        printf("x_c: [%s] y_c: [%d]\n", "lost", *pEnj->Enj[i].y_c); 
+    	        printf("radius: [%s]\n", "lost");
+    	}
+    	else if(*pEnj->Enj[i].x_c > 0 && *pEnj->Enj[i].y_c < 0)
+    	{
+    	        printf("x_c: [%d] y_c: [%s]\n", *pEnj->Enj[i].x_c, "lost");	
+    	        printf("radius: [%s]\n", "lost");
+    	}	
 }
 
+/*Funcion para la vizualiacion en pantalla de todo el enjambre*/
 void ShowEnjambre(ENJAMBRE* pEnj)
 {
-    unsigned int i;
-    //PARA TODAS LAS PARTICULAS
-    for(i=0;i<pEnj->Nparticulas;i++)
-        ShowParticula(pEnj,i);
+    	unsigned int i;
+    	/*Para todas las particulas*/
+    	for(i=0;i<pEnj->Nparticulas;i++)
+    		ShowParticula(pEnj,i);
 }
 
+/*Recuperar espacio en memoria usado por el enjambre y devuelto al HEAP*/
 void EliminarEnjambre(ENJAMBRE* pEnj)
 {
-     unsigned int k;
-     //LIBERAR MEMORIA PARA CADA PARTICULA
-     for(k=0;k<pEnj->Nparticulas;k++)
-    {
-        free(pEnj->Enj[k].Xi);
-        free(pEnj->Enj[k].Vi);
-        free(pEnj->Enj[k].Pi);
-        free(pEnj->Enj[k].x_c);
-        free(pEnj->Enj[k].y_c);
-        free(pEnj->Enj[k].rad);
-    }
-    //LIBERAR MEMORIA DE LAS PARTTICULAS
-    free(pEnj->Enj);
-    //LIBERAR MEMORIA DEL ENJAMBRE
-    free(pEnj);
+	unsigned int k;
+     	/*Liberar memoria para cada particula*/
+     	for(k=0;k<pEnj->Nparticulas;k++)
+    	{
+        	free(pEnj->Enj[k].Xi);
+        	free(pEnj->Enj[k].Vi);
+        	free(pEnj->Enj[k].Pi);
+        	free(pEnj->Enj[k].x_c);
+        	free(pEnj->Enj[k].y_c);
+        	free(pEnj->Enj[k].rad);
+    	}
+    	/*Liberar memoria de las particulas*/
+    	free(pEnj->Enj);
+    	/*Liberar memoria del enjambre*/
+    	free(pEnj);
 }
 
+/*Evaluacion de cada particula*/
 void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
 {
-    unsigned int k;
-    int tetha;
-    int x, y;
-    //EVALUAR CADA PARTICULA
-    for(k=0;k<pEnj->Nparticulas;k++)
-    {
-	pEnj->Enj[k].XFit=0;
-        //pEnj->Enj[k].XFit=50-((pEnj->Enj[k].Xi[0]-5)*(pEnj->Enj[k].Xi[0]-5)+((pEnj->Enj[k].Xi[1]-5)*(pEnj->Enj[k].Xi[1]-5)));
-	*pEnj->Enj[k].x_c = (int)(((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
-    	*pEnj->Enj[k].y_c = (int)((2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
+	unsigned int k;
+    	int tetha;
+    	int x, y;
+    	/*Evaluacion de cada particula*/
+    	for(k=0;k<pEnj->Nparticulas;k++)
+    	{
+		pEnj->Enj[k].XFit=0;
+		/*Calculo del centro del circulo*/
+		*pEnj->Enj[k].x_c = (int)(((pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))*(2*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])) - (2*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1]))) / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
+    		*pEnj->Enj[k].y_c = (int)((2*(pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[4]*pEnj->Enj[k].Xi[4]+pEnj->Enj[k].Xi[5]*pEnj->Enj[k].Xi[5]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])) - 2*(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[2]*pEnj->Enj[k].Xi[2]+pEnj->Enj[k].Xi[3]*pEnj->Enj[k].Xi[3]-(pEnj->Enj[k].Xi[0]*pEnj->Enj[k].Xi[0]+pEnj->Enj[k].Xi[1]*pEnj->Enj[k].Xi[1])))  / (4*((pEnj->Enj[k].Xi[2]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[5]-pEnj->Enj[k].Xi[1])-(pEnj->Enj[k].Xi[4]-pEnj->Enj[k].Xi[0])*(pEnj->Enj[k].Xi[3]-pEnj->Enj[k].Xi[1]))));
+		/*Calculo del radio del circulo*/
+		*pEnj->Enj[k].rad = sqrt((pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)*(pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)+(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c)*(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c));
 	
-	//if(*pEnj->Enj[k].x_c < 0 || *pEnj->Enj[k].y_c < 0)
-	//{
-	//	printf("\n*************************");
-	//	printf("\nParticula perdida\n");
-	//	printf("*************************\n");
-	//	break;
-	//}
-	*pEnj->Enj[k].rad = sqrt((pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)*(pEnj->Enj[k].Xi[0]-*pEnj->Enj[k].x_c)+(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c)*(pEnj->Enj[k].Xi[1]-*pEnj->Enj[k].y_c));
-	//pEnj->Enj[k].XFit = 0;
-
-	//printf("x_c=%d, y_c=%d, rad=%d\n", x_c, y_c, rad);
+	/*Validacion de la existencia del circulo*/
 	for(tetha=0; tetha<360; tetha++)
 	{
 		x=(int)(*pEnj->Enj[k].rad*cos(tetha*M_PI/180.0)+*pEnj->Enj[k].x_c);
 		y=(int)(*pEnj->Enj[k].rad*sin(tetha*M_PI/180.0)+*pEnj->Enj[k].y_c);
-		//printf("x,y=%d,%d\n", x, y);
+		/*La componente X, Y debe estar dentro de los siguientes 
+		 * parametros para evitar error de fragmentacion*/
 		if(x < 256 && y < 256 && x > 0 && y > 0)
 		{
+			/*Si hay pixel*/
 			if(img->imx[x*img->ancho+y] == 0)
+				/*Se adiciona un voto*/
 				pEnj->Enj[k].XFit++;	
 		}
 	}
@@ -285,78 +325,104 @@ void EvaluarEnjambre(ENJAMBRE* pEnj, gcIMG *img)
     }
 }
 
+/*Inicializacion de los mejores*/
 void InicializarMejores(ENJAMBRE* pEnj)
 {
-  unsigned int k;
-  float Best;
-  pEnj->idGbest=0;
-  Best=pEnj->Enj[0].XFit;                     //BEST SE INICIALIZA CON EL VALOR FITNESS DE LA POSICION DE LA PRIMERA PARTICULA
-  //PARA TODAS LAS PARTICULAS
-    for(k=0;k<pEnj->Nparticulas;k++)
-    {
-        pEnj->Enj[k].PFit=pEnj->Enj[k].XFit;         //CADA PFit DE CADA PARTICULA SE INICIALIZA CON EL VALOR FITNESS DE LA POSICION DE ELLA MISMA
-        if(pEnj->Enj[k].PFit>Best)                 //ENTRA SI EL PFit DE CADA PARTICULA ES MAYOR QUE BEST
-        {
-            pEnj->idGbest=k;            // SE HALLA LA K-ESIMA PARTICULA QUE SE CONSIDERA LA MEJOR
-            Best=pEnj->Enj[k].PFit;  // SE AGINA EL VALOR PFit DE LA K-ESIMA PARTICULA A BEST
-        }
-    }
+  	unsigned int k;
+  	float Best;
+  	pEnj->idGbest=0;
+  	/*Best se inicializa con el valor fitnees de la posicion
+  	 * de la primera particula*/
+  	Best=pEnj->Enj[0].XFit;
+
+	/*Para cada particula*/
+    	for(k=0;k<pEnj->Nparticulas;k++)
+    	{
+		/*Cada PFit de cada particula se inicializa con el valor 
+		 * fitness de la posicion de la misma*/
+    		pEnj->Enj[k].PFit=pEnj->Enj[k].XFit;  
+		/*Entra si el PFit de cada particula es mayor que best*/
+    	    	if(pEnj->Enj[k].PFit>Best)              
+    	    	{
+			/*Se halla la k-esima particula que se considera la mejor*/
+    	        	pEnj->idGbest=k;           
+			/*Se asigna el valor PFit de la k-esima particula a best*/
+    	        	Best=pEnj->Enj[k].PFit;  
+    	    	}
+    	}
 }
 
+/*Actualizar velocidad de las particulas*/
 void ActualizarVelocidad(ENJAMBRE* pEnj)
 {
-    unsigned int i,k=0;
-    float Y1,Y2,aux;
-    //PARA TODAS LAS PARTICULAS
-    for(i=0;i<pEnj->Nparticulas;i++)
-         for(k=0;k<pEnj->Nparametros;k++)
-        {
-           Y1=((double)rand()/RAND_MAX);             //Numero de 0 a 1
-           Y2=((double)rand()/RAND_MAX);             //Numero de 0 a 1
-           aux=pEnj->Enj[i].Vi[k]+pEnj->C1*Y1*(pEnj->Enj[i].Pi[k]-pEnj->Enj[i].Xi[k])+
-                    pEnj->C2*Y2*(pEnj->Enj[pEnj->idGbest].Pi[k]-pEnj->Enj[i].Xi[k]);
-           if(aux>pEnj->Vmax)
-             {pEnj->Enj[i].Vi[k]=pEnj->Vmax;
-              break;}
-           if(aux<pEnj->Vmin)
-            {pEnj->Enj[i].Vi[k]=pEnj->Vmin;
-             break;}
-          pEnj->Enj[i].Vi[k]= aux;
-        }
+	unsigned int i,k=0;
+    	float Y1,Y2,aux;
+    	/*Para todas las particulas*/
+    	for(i=0;i<pEnj->Nparticulas;i++)
+	/*Para todos los parametros*/
+        	for(k=0;k<pEnj->Nparametros;k++)
+        	{
+        		Y1=((double)rand()/RAND_MAX);	//Numero de 0 a 1
+           		Y2=((double)rand()/RAND_MAX);	//Numero de 0 a 1
+           		aux=pEnj->Enj[i].Vi[k]+pEnj->C1*Y1*(pEnj->Enj[i].Pi[k]-pEnj->Enj[i].Xi[k])+
+                    	pEnj->C2*Y2*(pEnj->Enj[pEnj->idGbest].Pi[k]-pEnj->Enj[i].Xi[k]);
+           		if(aux>pEnj->Vmax)
+           		{
+				pEnj->Enj[i].Vi[k]=pEnj->Vmax;
+           		   	break;
+			}
+           		if(aux<pEnj->Vmin)
+           		{
+				pEnj->Enj[i].Vi[k]=pEnj->Vmin;
+           		  	break;
+			}
+			pEnj->Enj[i].Vi[k]= aux;
+        	}
 }
 
+/*Actualizacion de la posicion de la particula*/
 void ActualizarPosicion(ENJAMBRE* pEnj)
 {
-    unsigned int i,k;
-    //PARA TODAS LAS PARTICULAS
-    for(i=0;i<pEnj->Nparticulas;i++)
-         for(k=0;k<pEnj->Nparametros;k++)
-             pEnj->Enj[i].Xi[k]+=pEnj->Enj[i].Vi[k];
+    	unsigned int i,k;
+    	/*Para las particulas*/
+    	for(i=0;i<pEnj->Nparticulas;i++)
+		/*Para todos los parametros*/
+        	for(k=0;k<pEnj->Nparametros;k++)
+             		pEnj->Enj[i].Xi[k]+=pEnj->Enj[i].Vi[k];
 }
 
+/*Actualizacion de las mejores particulas*/
 void ActualizarMejores(ENJAMBRE* pEnj)
 {
-    unsigned int i,k;
-    float Best;
-    Best=pEnj->Enj[pEnj->idGbest].PFit;             //SE ASIGNA A BEST EL PFit DE LA MEJOR PARTICULA
-    for(i=0;i<pEnj->Nparticulas;i++)
-    {
-        if(pEnj->Enj[i].XFit>pEnj->Enj[i].PFit)       //ENTRA SI EL XFfit DE LA PARTICULA ES MAYOR QUE SU PFit, AS\CD PARA CADA PARTICULA
-        {
-            for(k=0;k<pEnj->Nparametros;k++)
-            {
-                 pEnj->Enj[i].Pi[k]=pEnj->Enj[i].Xi[k];   //SE ASIGNA LA POSICION DE LA PARTICULA A SU MEJOR POSICION
-                 pEnj->Enj[i].PFit=pEnj->Enj[i].XFit;     //SE ASIGNA LA MEJOR POSICION A SU VALOR FITNESS DE LA MEJOR POSICION
-            }
-        }
-        if(pEnj->Enj[i].PFit>Best)              //ENTRA SI EL PFit DE LA PARTICULA ES MAYOR A BEST, ASI PARA CADA PARTICULA
-        {
-            pEnj->idGbest=i;                      //LA i-ESIMA PARTICULA ES IDENTIFICADA COMO LA MEJOR GLOBAL
-            Best= pEnj->Enj[i].PFit;           //EL VALOR FITNESS DE LA MEJOR POSICION SE ASIGNA A BEST
-        }
-
-    }
-
+    	unsigned int i,k;
+    	float Best;
+	/*Se asigna a best el PFit de la mejor particula*/
+    	Best=pEnj->Enj[pEnj->idGbest].PFit;            
+    	for(i=0;i<pEnj->Nparticulas;i++)
+    	{
+		/*Entra si el XFit de la particula es mayor que su PFit*/
+    	    	if(pEnj->Enj[i].XFit>pEnj->Enj[i].PFit)       
+    	    	{
+			/*Para todos los parametros*/
+    	        	for(k=0;k<pEnj->Nparametros;k++)
+    	        	{
+				/*Se asigna la posicion de la particula a su 
+				 * mejor posicion*/
+    	             		pEnj->Enj[i].Pi[k]=pEnj->Enj[i].Xi[k];   
+				/*Se asigna la mejor posicion a su valor fitness 
+				 * de la mejor posicion*/
+    	             		pEnj->Enj[i].PFit=pEnj->Enj[i].XFit;     
+    	        	}
+    	    	}
+		/*Entra si el PFit de la partciula es mayor a Best*/ 
+    	    	if(pEnj->Enj[i].PFit>Best)             
+    	    	{
+			/*La i-esima particula es identificada*/
+    	        	pEnj->idGbest=i;                      
+			/*El valor fitness de la mejor posicion se asigna a best*/
+    	        	Best= pEnj->Enj[i].PFit;          
+    	    	}
+	}
 }
 
 gcIMG* gcGetImgBmp(char *ruta)
